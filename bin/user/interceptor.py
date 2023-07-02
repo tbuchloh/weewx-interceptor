@@ -1085,6 +1085,8 @@ class AcuriteBridge(Consumer):
                         pkt['rssi'] = float(data[n]) * 25 # [0,100]
                     elif n in self.LABEL_MAP:
                         pkt[self.LABEL_MAP[n]] = self.decode_float(data[n])
+                    elif n == 'rainin':
+                        logdbg("ignored parameter 'rainin=%s'" % data[n])
                     elif n in self.IGNORED_LABELS:
                         val = data[n]
                         if n == 'PASSWORD':
