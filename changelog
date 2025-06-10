@@ -1,3 +1,7 @@
+0.61 01jan2024
+* require weewx v4 and python3
+* removed legacy python2 compatibility
+
 0.54 22feb2020
 * added wh40batt in ecowitt protocol
 

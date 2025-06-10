@@ -1,6 +1,7 @@
 weewx-interceptor
 Copyright 2016-2020 Matthew Wall
 Distributed under terms of the GPLv3
+Requires weewx 4 (Python 3)
 
 This is a driver for weewx that receives and parses network traffic.  It can
 be used with a variety of "internet bridge" devices including:
@@ -78,7 +79,7 @@ or using apt-get on debian systems:
 ===============================================================================
 Installation
 
-0) install weewx, select 'Simulator' driver
+0) install weewx 4, select 'Simulator' driver
 
 http://weewx.com/docs/usersguide.htm#installing
 

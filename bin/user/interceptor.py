@@ -251,59 +251,38 @@ the WSView app.
 # FIXME: add code to skip duplicate and out-of-order packets
 # FIXME: default acurite mapping confuses multiple tower sensors
 
-from __future__ import with_statement
-
-# support both python2 and python3.  attempt the python3 import first, then
-# fallback to python2.
-try:
-    from http.server import BaseHTTPRequestHandler
-    from socketserver import TCPServer
-    import queue as Queue
-    import urllib.parse as urlparse
-except ImportError:
-    from BaseHTTPServer import BaseHTTPRequestHandler
-    from SocketServer import TCPServer
-    import Queue
-    import urlparse
+from http.server import BaseHTTPRequestHandler
+from socketserver import TCPServer
+import queue as Queue
+import urllib.parse as urlparse
 
 import binascii
 import calendar
 import fnmatch
 import re
 import string
-import sys
 import threading
 import time
 
-try:
-    # weewx4 logging
-    import weeutil.logger
-    import logging
-    log = logging.getLogger(__name__)
-    def logdbg(msg):
-        log.debug(msg)
-    def loginf(msg):
-        log.info(msg)
-    def logerr(msg):
-        log.error(msg)
-except ImportError:
-    # old-style weewx logging
-    import syslog
-    def logmsg(level, msg):
-        syslog.syslog(level, 'interceptor: %s: %s' %
-                      (threading.currentThread().getName(), msg))
-    def logdbg(msg):
-        logmsg(syslog.LOG_DEBUG, msg)
-    def loginf(msg):
-        logmsg(syslog.LOG_INFO, msg)
-    def logerr(msg):
-        logmsg(syslog.LOG_ERR, msg)
+import logging
+import weeutil.logger
+
+log = logging.getLogger(__name__)
+
+def logdbg(msg):
+    log.debug(msg)
+
+def loginf(msg):
+    log.info(msg)
+
+def logerr(msg):
+    log.error(msg)
 
 import weewx.drivers
 import weeutil.weeutil
 
 DRIVER_NAME = 'Interceptor'
-DRIVER_VERSION = '0.60'
+DRIVER_VERSION = '0.61'
 
 DEFAULT_ADDR = ''
 DEFAULT_PORT = 80
@@ -320,14 +299,12 @@ def confeditor_loader():
 
 
 def _to_bytes(data):
-    if sys.version_info < (3, 0):
-        return bytes(data)
-    return bytes(data, 'utf8')
+    """Return a bytes representation without altering byte values."""
+    return data.encode('latin1')
 
 def _bytes_to_str(data):
-    if sys.version_info < (3, 0):
-        return data
-    return str(data, 'utf-8')
+    """Return a string representation of bytes without decoding."""
+    return data.decode('latin1')
 
 def _obfuscate_passwords(msg):
     return re.sub(r'(PASSWORD|PASSKEY)=[^&]+', r'\1=XXXX', msg)
@@ -335,7 +312,9 @@ def _obfuscate_passwords(msg):
 def _fmt_bytes(data):
     if not data:
         return ''
-    return ' '.join(['%02x' % ord(x) for x in data])
+    if isinstance(data, str):
+        data = data.encode('latin1')
+    return ' '.join('%02x' % b for b in data)
 
 def _cgi_to_dict(s):
     if '=' in s:
@@ -1890,7 +1869,7 @@ class GW1000U(Consumer):
     @staticmethod
     def encode_serial(sn):
         # encode a 16-character serial number into 8 bytes
-        return _bytes_to_str(binascii.unhexlify(sn))
+        return binascii.unhexlify(sn).decode('latin1')
 
     @staticmethod
     def encode_bcd(x):
